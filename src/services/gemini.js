@@ -1,4 +1,5 @@
 // services/gemini.js
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -16,10 +17,10 @@ ${pokemon.moves.slice(0, 10).map(m => `- ${m.move.name}`).join('\n')}
 📌 Estadísticas:
 ${pokemon.stats.map(s => `- ${s.stat.name}: ${s.base_stat}`).join('\n')}
 
-El usuario te hará preguntas sobre este Pokémon. Responde de forma clara y precisa.
+El usuario te hará preguntas sobre este Pokémon. Responde de forma clara, precisa y español.
   `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();

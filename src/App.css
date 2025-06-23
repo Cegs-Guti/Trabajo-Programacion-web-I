@@ -41,6 +41,7 @@
   color: #888;
 }
 
+
 .pokemon-card {
   border: 1px solid #ddd;
   padding: 1rem;
@@ -49,4 +50,33 @@
   border-radius: 8px;
   width: 150px;
   display: inline-block;
+  position: relative;
+}
+
+
+.like-button img {
+  width: 24px;
+  height: 24px;
+}
+
+
+.talk-button {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+.talk-button:hover {
+  background-color: #2563eb;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

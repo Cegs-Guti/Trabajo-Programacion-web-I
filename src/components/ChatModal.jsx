@@ -1,74 +1,71 @@
 import React, { useState } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI("AIzaSyAfvwnHkWc5ElQs2IgQ-tdgyQnhL0Cceio");
 
 function ChatModal({ pokemon, onClose }) {
-  const [userInput, setUserInput] = useState("");
+  const [pregunta, setPregunta] = useState("");
   const [respuesta, setRespuesta] = useState("");
   const [cargando, setCargando] = useState(false);
 
   const enviarPregunta = async () => {
+    if (!pregunta) return;
     setCargando(true);
+    setRespuesta("");
+
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const res = await fetch("http://localhost:3001/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: `Actúa como un experto en Pokémon. Con base en la siguiente información, responde: 
+Nombre: ${pokemon.name}
+📌 Habilidades: ${pokemon.abilities.map(a => a.ability.name).join(", ")}
+📌 Movimientos: ${pokemon.moves.slice(0, 10).map(m => m.move.name).join(", ")}
+📌 Estadísticas: ${pokemon.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(", ")}.
 
-      const prompt = `
-Eres un experto en Pokémon. Ayuda al usuario respondiendo basándote en los siguientes datos.
+Pregunta: ${pregunta}`
+        })
+      });
 
-📌 Nombre: ${pokemon.name}
-
-📌 Habilidades:
-${pokemon.abilities.map((a) => "- " + a.ability.name).join("\n")}
-
-📌 Movimientos (solo primeros 10):
-${pokemon.moves.slice(0, 10).map((m) => "- " + m.move.name).join("\n")}
-
-📌 Estadísticas:
-${pokemon.stats.map((s) => `- ${s.stat.name}: ${s.base_stat}`).join("\n")}
-
-❓ Pregunta del usuario:
-${userInput}
-`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      setRespuesta(response.text());
+      const data = await res.json();
+      setRespuesta(data.respuesta || "No se obtuvo una respuesta.");
     } catch (error) {
-      console.error(error);
-      setRespuesta("❌ Hubo un error al consultar a Gemini.");
+      setRespuesta("Hubo un error al conectar con Gemini.");
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow max-w-lg w-full relative">
-        <button onClick={onClose} className="absolute top-2 right-2 text-xl">
-          &times;
-        </button>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+        <h2 className="text-xl font-bold mb-4 capitalize">{pokemon.name}</h2>
 
-        <h2 className="text-xl font-bold mb-4">Conversar sobre {pokemon.name}</h2>
-
-        <input
-          type="text"
-          placeholder="Haz tu pregunta..."
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          className="w-full border p-2 rounded mb-2"
+        <textarea
+          value={pregunta}
+          onChange={(e) => setPregunta(e.target.value)}
+          placeholder="Haz una pregunta sobre este Pokémon"
+          className="w-full p-2 border rounded text-black dark:text-white dark:bg-gray-800"
         />
 
-        <button
-          onClick={enviarPregunta}
-          disabled={cargando}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-        >
-          {cargando ? "Consultando..." : "Preguntar"}
-        </button>
+        <div className="mt-4 flex justify-between">
+          <button
+            onClick={enviarPregunta}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            disabled={cargando}
+          >
+            {cargando ? "Consultando..." : "Preguntar"}
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Cerrar
+          </button>
+        </div>
 
         {respuesta && (
-          <div className="mt-4 p-2 border rounded bg-gray-100 whitespace-pre-wrap text-left">
+          <div className="mt-4 p-3 border-t text-sm whitespace-pre-line">
             {respuesta}
           </div>
         )}

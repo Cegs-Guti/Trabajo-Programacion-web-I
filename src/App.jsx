@@ -10,28 +10,38 @@ function App() {
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [pokemonSeleccionado, setPokemonSeleccionado] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   const manejarConversacion = (pokemon) => {
     setPokemonSeleccionado(pokemon);
   };
+
+
+  useEffect(() => {
+    document.body.style.backgroundColor = darkMode ? "#111827" : "#ffffff";
+    document.body.style.color = darkMode ? "#ffffff" : "#000000";
+  }, [darkMode]);
 
   useEffect(() => {
     const fetchPokemons = async () => {
       try {
         const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
         const data = await response.json();
+
         const detailedPokemons = await Promise.all(
           data.results.map(async (pokemon) => {
             const res = await fetch(pokemon.url);
             return await res.json();
           })
         );
+
         setPokemons(detailedPokemons);
         contarFavoritos();
       } catch (error) {
         console.error("Error al obtener los pokemones:", error);
       }
     };
+
     fetchPokemons();
   }, []);
 
@@ -48,13 +58,23 @@ function App() {
     const matchesType = selectedType
       ? pokemon.types.some((t) => t.type.name === selectedType)
       : true;
+
     return matchesSearch && (!showOnlyFavorites || isLiked) && matchesType;
   });
 
   const tiposDisponibles = [...new Set(pokemons.flatMap(p => p.types.map(t => t.type.name)))];
 
   return (
-    <div className="p-4">
+    <div className={`p-4 min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
+      <div className="text-right mb-4">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+        >
+          {darkMode ? "☀️ Modo Claro" : "🌙 Modo Oscuro"}
+        </button>
+      </div>
+
       <h1 className="text-3xl font-bold text-center mb-6">
         Pokedex <span className="text-red-500">(Favoritos: {favoriteCount})</span>
       </h1>
@@ -64,7 +84,7 @@ function App() {
         placeholder="Buscar Pokémon"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="border p-2 rounded w-full mb-4"
+        className={`border p-2 rounded w-full mb-4 ${darkMode ? "bg-gray-800 text-white border-gray-600" : ""}`}
       />
 
       <div className="flex gap-4 mb-6 flex-wrap justify-center">
@@ -78,9 +98,9 @@ function App() {
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="border px-4 py-2 rounded"
+          className={`border px-4 py-2 rounded ${darkMode ? "bg-gray-800 text-white border-gray-600" : ""}`}
         >
-          <option value="">Todos los tipos</option>
+          <option value="">Filtrar por tipo</option>
           {tiposDisponibles.map((tipo) => (
             <option key={tipo} value={tipo}>
               {tipo}
@@ -104,6 +124,7 @@ function App() {
             onLikeChange={contarFavoritos}
             onTalk={() => manejarConversacion(pokemon)}
             pokemonData={pokemon}
+            darkMode={darkMode}
           />
         ))}
       </div>
@@ -112,6 +133,7 @@ function App() {
         <ChatModal
           pokemon={pokemonSeleccionado}
           onClose={() => setPokemonSeleccionado(null)}
+          darkMode={darkMode}
         />
       )}
     </div>
