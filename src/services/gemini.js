@@ -20,7 +20,7 @@ ${pokemon.stats.map(s => `- ${s.stat.name}: ${s.base_stat}`).join('\n')}
 El usuario te hará preguntas sobre este Pokémon. Responde de forma clara, precisa y español.
   `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
